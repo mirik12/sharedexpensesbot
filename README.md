@@ -21,5 +21,20 @@ Kubernetes and Docker: Employed for containerization and deployment of the proje
 Monitoring: Implemented for performance monitoring and issue detection.
 CI/CD with GitHub Actions: Enables automated build, testing, and deployment processes.
 Flux or Argo CD: Facilitates continuous delivery and automatic deployment in Kubernetes.
+
+
+## Bot Functionality
+
+1.  Registration and Group Creation: User Miroslav can register in the bot and create a new group. He can add other participants, such as Natasha, Sasha, Valentina, and Yana, to this group.
+    
+2.  Adding Expenses: Miroslav can add expenses through the bot. After selecting a command (e.g., /start), a menu is displayed with options, including "Add Expense." After entering the expense amount (digits only), the bot asks Miroslav to confirm the amount. If the amount is entered correctly, the bot prompts for the expense location (description). Information about the expense (name, amount, location, time, date) is stored in the database.
+    
+3.  Personal Expense Statistics: Miroslav can view statistics of his personal expenses through the "Personal Expense Statistics" option. This includes the total amount spent, graphs or charts showing the change in expenses over time, and more.
+    
+4.  Group Expense Statistics: The bot provides the option to view overall expense statistics for the group through the "Group Expense Statistics" option. This includes the total group expenditure, distribution of expenses by categories, graphs or charts, and more.
+    
+5.  Authentication and Privacy: Each user has their own account, and expense data is private. Users can only access their own personal expenses and statistics.
+
+
 **Contribution**
 Contributions to the project are welcome! If you have any ideas, suggestions, or would like to collaborate, please fork the repository and create a Pull Request with your proposed changes.
