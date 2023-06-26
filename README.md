@@ -25,6 +25,9 @@ Flux or Argo CD: Facilitates continuous delivery and automatic deployment in Kub
 
 ## Bot Functionality
 
+
+## Bot Functionality
+
 1.  Registration and Group Creation: User Miroslav can register in the bot and create a new group. He can add other participants, such as Natasha, Sasha, Valentina, and Yana, to this group.
     
 2.  Adding Expenses: Miroslav can add expenses through the bot. After selecting a command (e.g., /start), a menu is displayed with options, including "Add Expense." After entering the expense amount (digits only), the bot asks Miroslav to confirm the amount. If the amount is entered correctly, the bot prompts for the expense location (description). Information about the expense (name, amount, location, time, date) is stored in the database.
@@ -34,6 +37,10 @@ Flux or Argo CD: Facilitates continuous delivery and automatic deployment in Kub
 4.  Group Expense Statistics: The bot provides the option to view overall expense statistics for the group through the "Group Expense Statistics" option. This includes the total group expenditure, distribution of expenses by categories, graphs or charts, and more.
     
 5.  Authentication and Privacy: Each user has their own account, and expense data is private. Users can only access their own personal expenses and statistics.
+
+6. CSV and PDF Downloads: The bot provides the ability to download cost data in CSV or PDF format for further analysis or saving.
+
+7. Other features: We will continue to add additional features and capabilities to ensure ease of use and improve the user experience.
 
 
 **Contribution**
