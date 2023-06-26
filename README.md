@@ -25,9 +25,6 @@ Flux or Argo CD: Facilitates continuous delivery and automatic deployment in Kub
 
 ## Bot Functionality
 
-
-## Bot Functionality
-
 1.  Registration and Group Creation: User Miroslav can register in the bot and create a new group. He can add other participants, such as Natasha, Sasha, Valentina, and Yana, to this group.
     
 2.  Adding Expenses: Miroslav can add expenses through the bot. After selecting a command (e.g., /start), a menu is displayed with options, including "Add Expense." After entering the expense amount (digits only), the bot asks Miroslav to confirm the amount. If the amount is entered correctly, the bot prompts for the expense location (description). Information about the expense (name, amount, location, time, date) is stored in the database.
