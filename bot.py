@@ -1,51 +1,33 @@
 import telebot
 import os
-import sqlite3
 from telebot import types
+from database import Database, Expense
 
-# Отримання токену бота з змінної середовища
 TOKEN = os.environ.get('TOKEN')
 
-# Перевірка, чи токен бота існує
 if not TOKEN:
-    raise ValueError('Не вдалося знайти токен бота. Переконайтесь, що ви встановили змінну середовища BOT_TOKEN з коректним токеном бота.')
+    raise ValueError(
+        'Не вдалося знайти токен бота. Переконайтесь, що ви встановили змінну середовища BOT_TOKEN з коректним токеном бота.')
 
-# Ініціалізація бота
 bot = telebot.TeleBot(TOKEN)
-
-# Підключення до бази даних SQLite
-conn = sqlite3.connect('expenses.db')
-cursor = conn.cursor()
-
-# Створення таблиці для збереження витрат, якщо вона не існує
-cursor.execute('''CREATE TABLE IF NOT EXISTS expenses
-                  (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                   user_id INTEGER,
-                   name TEXT,
-                   amount REAL,
-                   category TEXT,
-                   description TEXT)''')
-conn.commit()
-
-# Список доступних імен
+db = Database()
 names = ['Наташа', 'Саша', 'Мирослав', 'Валентина', 'Яна']
 
-# Обробник команди /start
+
 @bot.message_handler(commands=['start'])
 def start(message):
-    # Створення меню з кнопками
     markup = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
     button1 = types.KeyboardButton('Додати витрати')
     button2 = types.KeyboardButton('Статистика')
     button3 = types.KeyboardButton('Допомога')
     markup.add(button1, button2, button3)
 
-    bot.reply_to(message, 'Вітаю! Ви підключилися до бота.', reply_markup=markup)
+    bot.reply_to(message, 'Вітаю! Ви підключилися до бота.',
+                 reply_markup=markup)
 
-# Обробник натискання на кнопку "Додати витрати"
+
 @bot.message_handler(func=lambda message: message.text == 'Додати витрати')
 def add_expenses(message):
-    # Створення меню для вибору імен
     markup = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
     buttons = [types.KeyboardButton(name) for name in names]
     markup.add(*buttons)
@@ -53,62 +35,86 @@ def add_expenses(message):
     msg = bot.reply_to(message, 'Виберіть ім\'я:', reply_markup=markup)
     bot.register_next_step_handler(msg, process_name_step)
 
+
 def process_name_step(message):
+    global name
     name = message.text
     if name in names:
         bot.reply_to(message, f'Ви обрали ім\'я: {name}')
         msg = bot.reply_to(message, 'Введіть суму витрат:')
-        bot.register_next_step_handler(msg, process_amount_step, name)
+        bot.register_next_step_handler(msg, process_amount_step)
     else:
-        bot.reply_to(message, 'Будь ласка, виберіть ім\'я зі списку доступних імен.')
+        bot.reply_to(
+            message, 'Будь ласка, виберіть ім\'я зі списку доступних імен.')
 
-def process_amount_step(message, name):
-    amount = message.text
-    # Перевірка, чи введено числове значення
+
+def process_amount_step(message):
     try:
-        amount = float(amount.replace(',', '.'))
+        amount = float(message.text.replace(',', '.'))
         markup = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
         yes_button = types.KeyboardButton('Так')
         no_button = types.KeyboardButton('Ні')
         markup.add(yes_button, no_button)
-        msg = bot.reply_to(message, f'Ви ввели суму: {amount}. Ви впевнені, що ввели правильну суму?', reply_markup=markup)
-        bot.register_next_step_handler(msg, process_confirmation_step, name, amount)
+        msg = bot.reply_to(message, 'Ви впевнені?', reply_markup=markup)
+        bot.register_next_step_handler(
+            msg, process_first_confirmation_step, amount)
     except ValueError:
-        bot.reply_to(message, 'Будь ласка, введіть числове значення суми витрат.')
+        msg = bot.reply_to(
+            message, 'Сума повинна бути числом. Будь ласка, введіть суму ще раз.')
+        bot.register_next_step_handler(msg, process_amount_step)
 
-def process_confirmation_step(message, name, amount):
+
+def process_first_confirmation_step(message, amount):
     confirmation = message.text
     if confirmation == 'Так':
-        # Отримання категорій із бази даних або з відповідного джерела
-        categories = ['Їжа', 'Гігієна', 'Транспорт', 'Розваги', 'Інше']
         markup = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
-        buttons = [types.KeyboardButton(category) for category in categories]
-        markup.add(*buttons)
-
-        msg = bot.reply_to(message, 'Оберіть категорію:', reply_markup=markup)
-        bot.register_next_step_handler(msg, process_category_step, name, amount)
-    elif confirmation == 'Ні':
-        msg = bot.reply_to(message, 'Будь ласка, введіть суму витрат:')
-        bot.register_next_step_handler(msg, process_amount_step, name)
+        general_button = types.KeyboardButton('General')
+        food_button = types.KeyboardButton('Food')
+        markup.add(general_button, food_button)
+        msg = bot.reply_to(message, 'Виберіть категорію:', reply_markup=markup)
+        bot.register_next_step_handler(msg, process_category_step, amount)
     else:
-        bot.reply_to(message, 'Будь ласка, виберіть один з варіантів відповіді.')
+        msg = bot.reply_to(message, 'Будь ласка, введіть суму витрат ще раз.')
+        bot.register_next_step_handler(msg, process_amount_step)
 
-def process_category_step(message, name, amount):
+
+def process_category_step(message, amount):
+    global category
     category = message.text
-    # Отримання опису витрат від користувача
+    bot.reply_to(message, f'Ви обрали категорію: {category}')
     msg = bot.reply_to(message, 'Введіть опис витрат:')
-    bot.register_next_step_handler(msg, process_description_step, name, amount, category)
+    bot.register_next_step_handler(
+        msg, process_description_step, message.from_user.id, name, amount, category)
 
-def process_description_step(message, name, amount, category):
+
+def process_description_step(message, user_id, name, amount, category):
     description = message.text
-    # Збереження витрат у базі даних
-    cursor.execute("INSERT INTO expenses (user_id, name, amount, category, description) VALUES (?, ?, ?, ?, ?)",
-                   (message.from_user.id, name, amount, category, description))
-    conn.commit()
+    markup = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
+    yes_button = types.KeyboardButton('Так')
+    no_button = types.KeyboardButton('Ні')
+    markup.add(yes_button, no_button)
+    msg = bot.send_message(
+        message.chat.id, f"Ім'я: {name}\nСума: {amount}\nКатегорія: {category}\nОпис: {description}\nВсе вірно?", reply_markup=markup)
+    bot.register_next_step_handler(
+        msg, process_final_confirmation_step, user_id, name, amount, category, description)
 
-    # Виведення повідомлення з деталями витрат
-    bot.reply_to(message, f'Витрати успішно збережено:\nІм\'я: {name}\nСума: {amount}\nКатегорія: {category}\nОпис: {description}')
 
-# Запуск бота
-if __name__ == '__main__':
-    bot.polling()
+def process_final_confirmation_step(message, user_id, name, amount, category, description):
+    if message.text.lower() == 'так':
+        expense = Expense(user_id, name, amount, category, description)
+        db.add_expense(expense)
+        bot.send_message(message.chat.id, 'Витрати успішно додано!')
+    else:
+        bot.send_message(
+            message.chat.id, 'Введення відмінено. Спробуйте знову.')
+    markup = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
+    button1 = types.KeyboardButton('Додати витрати')
+    button2 = types.KeyboardButton('Статистика')
+    button3 = types.KeyboardButton('Допомога')
+    markup.add(button1, button2, button3)
+    msg = bot.send_message(
+        message.chat.id, 'Чи хочете ви щось ще зробити?', reply_markup=markup)
+    bot.register_next_step_handler(msg, start)
+
+
+bot.infinity_polling()
